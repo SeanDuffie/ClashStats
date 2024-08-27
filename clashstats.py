@@ -26,6 +26,21 @@
             - Trophy Count
             - TH Level
             - Hero Levels
+            
+    Features:
+        - Pick best war team
+        - Pick candidates for promotion
+        - Discord
+            - General Chatting
+                - Main Base
+                - Builder Base
+                - Raid attacks
+                - 
+            - Join/Leave Channel
+            - War Channel
+            - Raid Channel
+            - Games Channel
+            - Upgrades/Ranking Channel
 """
 
 
