@@ -1,129 +1,327 @@
+
+""" @file events.py
+    @author
+    @brief Clan Event Handler
+"""
 import asyncio
 import logging
 import os
 
 import coc
 from coc import utils
+from dotenv import load_dotenv, set_key
 
-clan_tags = ["#P222C9Y", "#9VPR98RG", "#9G2QU8YG", "#80Y8L0QY", "#2Y28CGP8"]
+import log_format
 
-"""Clan Events"""
+### PATH SECTION ###
+RTDIR = os.path.dirname(__file__)
+ENVDIR = f"{RTDIR}/../.env"
 
+### LOGGING SECTION ###
+logname = os.path.join(RTDIR, 'clan_events.log')
+log_format.format_logs(logger_name="Clash", file_name=logname, level=logging.DEBUG)
+logger = logging.getLogger("Clash")
 
+############ GET ENVIRONMENT VARIABLES ############
+load_dotenv(dotenv_path=ENVDIR)
+DEV_EMAIL = os.getenv("DEV_EMAIL")
+if DEV_EMAIL is None:
+    DEV_EMAIL = input("Enter the developer account email: ")
+    set_key(
+        dotenv_path=ENVDIR,
+        key_to_set="DEV_EMAIL",
+        value_to_set=DEV_EMAIL
+    )
+DEV_PASSWORD = os.getenv("DEV_PASSWORD")
+if DEV_PASSWORD is None:
+    DEV_PASSWORD = input("Enter the developer account password: ")
+    set_key(
+        dotenv_path=ENVDIR,
+        key_to_set="DEV_PASSWORD",
+        value_to_set=DEV_PASSWORD
+    )
+CLAN_TAG = os.getenv("CLAN_TAG")
+if CLAN_TAG is None:
+    CLAN_TAG = input("Enter the clan tag: ")
+    set_key(
+        dotenv_path=ENVDIR,
+        key_to_set="CLAN_TAG",
+        value_to_set=CLAN_TAG
+    )
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+if DISCORD_TOKEN is None:
+    DISCORD_TOKEN = input("Enter the discord bot token: ")
+    set_key(
+        dotenv_path=ENVDIR,
+        key_to_set="DISCORD_TOKEN",
+        value_to_set=DISCORD_TOKEN
+    )
+###################################################
+
+### Clan Events ###
 @coc.ClanEvents.member_donations()
 async def on_clan_member_donation(old_member, new_member):
+    """_summary_
+
+    Args:
+        old_member (_type_): _description_
+        new_member (_type_): _description_
+    """
     final_donated_troops = new_member.donations - old_member.donations
-    log.info(
-        f"{new_member} of {new_member.clan} just donated {final_donated_troops} troops.")
+    logger.info(
+        "%s of %s just donated %s troops.",
+        new_member,
+        new_member.clan,
+        final_donated_troops
+    )
 
 
 @coc.ClanEvents.member_received()
 async def on_clan_member_donation_receive(old_member, new_member):
+    """_summary_
+
+    Args:
+        old_member (_type_): _description_
+        new_member (_type_): _description_
+    """
     final_received_troops = new_member.received - old_member.received
-    log.info(
-        f"{new_member} of {new_member.clan} just received {final_received_troops} troops.")
+    logger.info(
+        "%s of %s just received %s troops.",
+        new_member,
+        new_member.clan,
+        final_received_troops
+    )
 
 
 @coc.ClanEvents.member_join()
 async def on_clan_member_join(member, clan):
-    log.info(f"{member.name} has joined {clan.name}")
+    """_summary_
+
+    Args:
+        member (_type_): _description_
+        clan (_type_): _description_
+    """
+    logger.info(
+        "%s has joined %s",
+        member.name,
+        clan.name
+    )
 
 
 @coc.ClanEvents.member_leave()
 async def on_clan_member_leave(member, clan):
-    log.info(f"{member.name} has left {clan.name}")
+    """_summary_
+
+    Args:
+        member (_type_): _description_
+        clan (_type_): _description_
+    """
+    logger.info(
+        "%s has left %s",
+        member.name,
+        clan.name
+    )
 
 
 @coc.ClanEvents.points()
 async def on_clan_trophy_change(old_clan, new_clan):
-    log.info(
-        f"{new_clan.name} total trophies changed from {old_clan.points} to {new_clan.points}")
+    """_summary_
+
+    Args:
+        old_clan (_type_): _description_
+        new_clan (_type_): _description_
+    """
+    logger.info(
+        "%s total trophies changed from %s to %s",
+        new_clan.name,
+        old_clan.points,
+        new_clan.points
+    )
 
 
 @coc.ClanEvents.member_builder_base_trophies()
 async def clan_member_builder_base_trophies_changed(old_member, new_member):
-    log.info(
-        f"{new_member} builder_base trophies changed from {old_member.builder_base_trophies} to"
-        f" {new_member.builder_base_trophies}")
+    """_summary_
+
+    Args:
+        old_member (_type_): _description_
+        new_member (_type_): _description_
+    """
+    logger.info(
+        "%s builder_base trophies changed from %s to %s",
+        new_member,
+        old_member.builder_base_trophies,
+        new_member.builder_base_trophies
+    )
 
 
-"""War Events"""
-
-
+### War Events ###
 @coc.WarEvents.war_attack()
 async def current_war_stats(attack, war):
-    log.info(
-        f"Attack number {attack.order}\n({attack.attacker.map_position}).{attack.attacker} of {attack.attacker.clan} "
-        f"attacked ({attack.defender.map_position}).{attack.defender} of {attack.defender.clan}")
+    """_summary_
+
+    Args:
+        attack (_type_): _description_
+        war (_type_): _description_
+    """
+    logger.info(
+        "Attack number %s\n(%s).%s of %s attacked (%s).%s of %s",
+        attack.order,
+        attack.attacker.map_position,
+        attack.attacker,
+        attack.attacker.clan,
+        attack.defender.map_position,
+        attack.defender,
+        attack.defender.clan
+    )
 
 
 @coc.WarEvents.new_war()
 async def new_war(war):
-    log.info(f"New war against {war.opponent.name} detected.")
+    """_summary_
+
+    Args:
+        war (_type_): _description_
+    """
+    logger.info("New war against %s detected.", war.opponent.name)
 
 
-"""Player Events"""
-
-
+### Player Events ###
 @coc.PlayerEvents.donations()
 async def on_player_donation(old_player, new_player):
+    """_summary_
+
+    Args:
+        old_player (_type_): _description_
+        new_player (_type_): _description_
+    """
     final_donated_troops = new_player.donations - old_player.donations
-    log.info(
-        f"{new_player} of {new_player.clan} just donated {final_donated_troops} troops.")
+    logger.info(
+        "%s of %s just donated %d troops.",
+        new_player,
+        new_player.clan,
+        final_donated_troops
+    )
 
 
 @coc.PlayerEvents.received()
 async def on_player_donation_receive(old_player, new_player):
+    """_summary_
+
+    Args:
+        old_player (_type_): _description_
+        new_player (_type_): _description_
+    """
     final_received_troops = new_player.received - old_player.received
-    log.info(
-        f"{new_player} of {new_player.clan} just received {final_received_troops} troops.")
+    logger.info(
+        "%s of %s just received %d troops.",
+        new_player,
+        new_player.clan,
+        final_received_troops
+    )
 
 
 @coc.PlayerEvents.trophies()
 async def on_player_trophy_change(old_player, new_player):
-    log.info(
-        f"{new_player} trophies changed from {old_player.trophies} to {new_player.trophies}")
+    """_summary_
+
+    Args:
+        old_player (_type_): _description_
+        new_player (_type_): _description_
+    """
+    logger.info(
+        "%s trophies changed from %d to %d",
+        new_player,
+        old_player.trophies,
+        new_player.trophies
+    )
 
 
 @coc.PlayerEvents.builder_base_trophies()
 async def on_player_builder_base_trophy_change(old_player, new_player):
-    log.info(
-        f"{new_player} builder_base trophies changed from {old_player.builder_base_trophies} to {new_player.builder_base_trophies}")
+    """_summary_
+
+    Args:
+        old_player (_type_): _description_
+        new_player (_type_): _description_
+    """
+    logger.info(
+        "%s builder_base trophies changed from %d to %d",
+        new_player,
+        old_player.builder_base_trophies,
+        new_player.builder_base_trophies
+    )
 
 
-"""Client Events"""
-
-
+### Client Events ###
 @coc.ClientEvents.maintenance_start()
 async def on_maintenance():
-    log.info("Maintenace Started")
+    """_summary_
+    """
+    logger.info("Maintenace Started")
 
 
 @coc.ClientEvents.maintenance_completion()
 async def on_maintenance_completion(time_started):
-    log.info(f"Maintenace Ended; started at {time_started}")
+    """_summary_
+
+    Args:
+        time_started (_type_): _description_
+    """
+    logger.info("Maintenace Ended; started at %s", time_started)
 
 
 @coc.ClientEvents.new_season_start()
 async def season_started():
-    log.info(f"New season started, and will finish at {str(utils.get_season_end())}")
+    """_summary_
+    """
+    logger.info(
+        "New season started, and will finish at %s",
+        utils.get_season_end()
+    )
 
 
 @coc.ClientEvents.clan_games_end()
 async def clan_games_ended():
-    log.info(f"Clan games have ended. The next ones will start at {str(utils.get_clan_games_start())}")
+    """_summary_
+    """
+    logger.info(
+        "Clan games have ended. The next ones will start at %s",
+        utils.get_clan_games_start()
+    )
 
 
 @coc.ClientEvents.raid_weekend_start()
 async def raid_weekend_started():
-    log.info(f"A new Raid Weekend started. It will last until {str(utils.get_raid_weekend_end())}")
+    """_summary_
+    """
+    logger.info(
+        "A new Raid Weekend started. It will last until %s",
+        utils.get_raid_weekend_end()
+    )
 
 
-async def main() -> None:
+async def main(clan_tags) -> None:
+    """_summary_
+
+    Args:
+        clan_tags (_type_): _description_
+    """
     coc_client = coc.EventsClient()
 
     # Attempt to log into CoC API using your credentials. You must use the
     # coc.EventsClient to enable event listening
+    try:
+        await coc_client.login(DEV_EMAIL,
+                               DEV_PASSWORD)
+    except coc.InvalidCredentials as error:
+        exit(error)
+
+    # Register all the clans you want to track
+    coc_client.add_clan_updates(*clan_tags)
+
+    # Register all the players you want to track
+    async for clan in coc_client.get_clans(clan_tags):
         coc_client.add_player_updates(*[member.tag for member in clan.members])
 
     # Register all the callback functions that are triggered when a
@@ -145,26 +343,8 @@ async def main() -> None:
         season_started
     )
 
-    if os.environ.get("RUNNING_TESTS"):
-        # ignore this; it's just for running github action tests.
-        import sys
-
-        class Handler(logging.Handler):
-            def emit(self, record) -> None:
-                sys.exit(0)
-
-        log.addHandler(Handler())
-        # we don't want to wait forever for an event, so if
-        # it sets up OK lets call it quits.
-        await asyncio.sleep(20)
-        _loop = asyncio.get_event_loop()
-        _loop.stop()
-
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    log = logging.getLogger()
-
     # Unlike the other examples that use `asyncio.run()`, in order to run
     # events forever you must set the event loop to run forever so we will use
     # the lower level function calls to handle this.
@@ -173,7 +353,8 @@ if __name__ == "__main__":
     try:
         # Using the loop context, run the main function then set the loop
         # to run forever so that it continuously monitors for events
-        loop.run_until_complete(main())
+        CT = [CLAN_TAG]
+        loop.run_until_complete(main(clan_tags=CT))
         loop.run_forever()
     except KeyboardInterrupt:
         pass
