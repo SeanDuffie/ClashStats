@@ -304,22 +304,21 @@ def clean_old_set(csv_dir: str):
 
     dat["Date"] = dat["Date"].apply(timeform, 1)
     # dat["Date"] = pd.to_datetime(dat["Date"])
-    
     return dat
 
 if __name__ == "__main__":
     DATASET = "clanname"
 
     # Initialize Database
-    db = Database(db_name=f"{DATASET}.db", db_path="./data/")
+    DB = Database(db_name=f"{DATASET}.db", db_path="./data/")
 
-    db.drop_table(DATASET)
+    DB.drop_table(DATASET)
 
-    df = clean_old_set(db.db_path)
-    db.df_to_table(df=df, t_name=DATASET)
+    DF = clean_old_set(DB.db_path)
+    DB.df_to_table(df=DF, t_name=DATASET)
 
     # Drop existing table for testing purposes
-    db.list_tables()
+    DB.list_tables()
 
     # # Read data from old csv and populate table all at once
     # df1 = pd.read_csv(filepath_or_buffer="./dat_aerogarden.csv")

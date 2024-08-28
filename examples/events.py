@@ -6,6 +6,7 @@
 import asyncio
 import logging
 import os
+import sys
 
 import coc
 from coc import utils
@@ -315,7 +316,7 @@ async def main(clan_tags) -> None:
         await coc_client.login(DEV_EMAIL,
                                DEV_PASSWORD)
     except coc.InvalidCredentials as error:
-        exit(error)
+        sys.exit(error)
 
     # Register all the clans you want to track
     coc_client.add_clan_updates(*clan_tags)
