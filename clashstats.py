@@ -42,5 +42,21 @@
             - Games Channel
             - Upgrades/Ranking Channel
 """
+import logging
+import os
 
+import log_format
+from clan import Clan
+from player import Player
 
+### PATH SECTION ###
+RTDIR = os.path.dirname(__file__)
+
+### LOGGING SECTION ###
+logname = os.path.join(RTDIR, 'Clash.log')
+log_format.format_logs(logger_name="Clash", file_name=logname)
+logger = logging.getLogger("Clash")
+
+if __name__ == "__main__":
+    clan = Clan("#2LQGUYYQJ")
+    plyr = Player("#2QJ9QJ8R")
