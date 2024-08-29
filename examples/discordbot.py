@@ -7,24 +7,26 @@ import logging
 import os
 import traceback
 
-import discord
-from discord.ext import commands
-
 import coc
+import discord
 from coc import utils
+import discord.ext
+import discord.ext.commands
+import discord.ext.tasks
 
 INFO_CHANNEL_ID = 761848043242127370  # some discord channel ID
 clan_tags = ["#20090C9PR", "#202GG92Q", "#20C8G0RPL"]
 
 ############ GET ENVIRONMENT VARIABLES ############
 from dotenv import load_dotenv
+
 RTDIR = os.path.dirname(__file__)
 
 load_dotenv(dotenv_path=f"{RTDIR}/.env")
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 ###################################################
 
-bot = commands.Bot(command_prefix="?", intents=discord.Intents.all())
+bot = discord.ext.commands.Bot(command_prefix="?", intents=discord.Intents.all())
 
 
 @bot.event
