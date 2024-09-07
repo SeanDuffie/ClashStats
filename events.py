@@ -64,13 +64,15 @@ if DISCORD_TOKEN is None:
     )
 ###################################################
 
-CHANNEL_DEFAULT = 0
-CHANNEL_WARS = 0
-CHANNEL_RAID = 0
-CHANNEL_GAME = 0
-CHANNEL_RANK = 0
-CHANNEL_DONATIONS = 0
-CHANNEL_WELCOME = 0
+CHANNELS = {
+    "DEFAULT": 0,
+    "WARS": 0,
+    "RAID": 0,
+    "GAME": 0,
+    "RANK": 0,
+    "DONATIONS": 0,
+    "WELCOME": 0
+}
 
 bot = discord.ext.commands.Bot(command_prefix="/", intents=discord.Intents.all())
 
@@ -81,9 +83,14 @@ async def on_ready():
     msg = "Clash Stats has been started!"
     logger.info(msg)
     try:
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        channels = bot.get_all_channels()
+        for channel in channels:
+            if "general" in channel.name.lower():
+                CHANNELS["DEFAULT"] = channel.id
+                logger.info("General Channel changed to: %d", CHANNELS["DEFAULT"])
+                await channel.send(msg)
     except AttributeError:
-        logger.error("No channel found with ID: %d", CHANNEL_DEFAULT)
+        logger.error("No channel found with ID: %d", CHANNELS["DEFAULT"])
 
 ### Clan Events ###
 @coc.ClanEvents.member_donations()
@@ -103,11 +110,11 @@ async def on_clan_member_donation(old_member: coc.ClanMember, new_member: coc.Cl
             final_donated_troops
     )
     logger.info(msg)
-    if CHANNEL_DONATIONS:
-        await bot.get_channel(CHANNEL_DONATIONS).send(msg)
+    if CHANNELS["DONATIONS"]:
+        await bot.get_channel(CHANNELS["DONATIONS"]).send(msg)
     else:
         logger.warning("No Donation Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
     print(type(old_member), type(new_member))
 
 
@@ -128,11 +135,11 @@ async def on_clan_member_donation_receive(old_member: coc.ClanMember, new_member
         final_received_troops
     )
     logger.info(msg)
-    if CHANNEL_DONATIONS:
-        await bot.get_channel(CHANNEL_DONATIONS).send(msg)
+    if CHANNELS["DONATIONS"]:
+        await bot.get_channel(CHANNELS["DONATIONS"]).send(msg)
     else:
         logger.warning("No Donation Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
     print(type(old_member), type(new_member))
 
 
@@ -151,11 +158,11 @@ async def on_clan_member_join(member: coc.ClanMember, clan: coc.Clan):
         clan.name
     )
     logger.info(msg)
-    if CHANNEL_WELCOME:
-        await bot.get_channel(CHANNEL_WELCOME).send(msg)
+    if CHANNELS["WELCOME"]:
+        await bot.get_channel(CHANNELS["WELCOME"]).send(msg)
     else:
         logger.warning("No Welcome Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
     print(type(member), type(clan))
     ranks = {
         -1: "left",
@@ -183,11 +190,11 @@ async def on_clan_member_leave(member: coc.ClanMember, clan: coc.Clan):
         clan.name
     )
     logger.info(msg)
-    if CHANNEL_WELCOME:
-        await bot.get_channel(CHANNEL_WELCOME).send(msg)
+    if CHANNELS["WELCOME"]:
+        await bot.get_channel(CHANNELS["WELCOME"]).send(msg)
     else:
         logger.warning("No Welcome Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
     print(type(member), type(clan))
 
 
@@ -207,11 +214,11 @@ async def on_clan_trophy_change(old_clan: coc.Clan, new_clan: coc.Clan):
         new_clan.points
     )
     logger.info(msg)
-    if CHANNEL_RANK:
-        await bot.get_channel(CHANNEL_RANK).send(msg)
+    if CHANNELS["RANK"]:
+        await bot.get_channel(CHANNELS["RANK"]).send(msg)
     else:
         logger.warning("No Rank Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 @coc.ClanEvents.member_trophies()
 async def clan_member_trophies_changed(old_member: coc.ClanMember, new_member: coc.ClanMember):
@@ -227,11 +234,11 @@ async def clan_member_trophies_changed(old_member: coc.ClanMember, new_member: c
         new_member.trophies
     )
     logger.info(msg)
-    if CHANNEL_RANK:
-        await bot.get_channel(CHANNEL_RANK).send(msg)
+    if CHANNELS["RANK"]:
+        await bot.get_channel(CHANNELS["RANK"]).send(msg)
     else:
         logger.warning("No Rank Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 @coc.ClanEvents.member_builder_base_trophies()
 async def clan_member_builder_base_trophies_changed(old_member: coc.ClanMember, new_member: coc.ClanMember):
@@ -247,11 +254,11 @@ async def clan_member_builder_base_trophies_changed(old_member: coc.ClanMember, 
         new_member.builder_base_trophies
     )
     logger.info(msg)
-    if CHANNEL_RANK:
-        await bot.get_channel(CHANNEL_RANK).send(msg)
+    if CHANNELS["RANK"]:
+        await bot.get_channel(CHANNELS["RANK"]).send(msg)
     else:
         logger.warning("No Rank Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 
 ### War Events ###
@@ -278,11 +285,11 @@ async def current_war_stats(attack: coc.WarAttack, war: coc.ClanWar):
         attack.defender.clan
     )
     logger.info(msg)
-    if CHANNEL_WARS:
-        await bot.get_channel(CHANNEL_WARS).send(msg)
+    if CHANNELS["WARS"]:
+        await bot.get_channel(CHANNELS["WARS"]).send(msg)
     else:
         logger.warning("No War Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 
 @coc.WarEvents.new_war()
@@ -294,11 +301,11 @@ async def new_war(war: coc.ClanWar):
     """
     msg = f"New war against {war.opponent.name} detected."
     logger.info(msg)
-    if CHANNEL_WARS:
-        await bot.get_channel(CHANNEL_WARS).send(msg)
+    if CHANNELS["WARS"]:
+        await bot.get_channel(CHANNELS["WARS"]).send(msg)
     else:
         logger.warning("No War Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 
 ### Client Events ###
@@ -327,11 +334,11 @@ async def season_started():
         utils.get_season_end()
     )
     logger.info(msg)
-    if CHANNEL_DEFAULT:
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+    if CHANNELS["DEFAULT"]:
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
     else:
         logger.warning("No General Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 
 @coc.ClientEvents.clan_games_start()
@@ -341,11 +348,11 @@ async def clan_games_started():
         utils.get_clan_games_end()
     )
     logger.info(msg)
-    if CHANNEL_GAME:
-        await bot.get_channel(CHANNEL_GAME).send(msg)
+    if CHANNELS["GAME"]:
+        await bot.get_channel(CHANNELS["GAME"]).send(msg)
     else:
         logger.warning("No Game Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 @coc.ClientEvents.clan_games_end()
 async def clan_games_ended():
@@ -356,11 +363,11 @@ async def clan_games_ended():
         utils.get_clan_games_start()
     )
     logger.info(msg)
-    if CHANNEL_GAME:
-        await bot.get_channel(CHANNEL_GAME).send(msg)
+    if CHANNELS["GAME"]:
+        await bot.get_channel(CHANNELS["GAME"]).send(msg)
     else:
         logger.warning("No Game Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 
 @coc.ClientEvents.raid_weekend_start()
@@ -370,11 +377,11 @@ async def raid_weekend_started():
         utils.get_raid_weekend_end()
     )
     logger.info(msg)
-    if CHANNEL_RAID:
-        await bot.get_channel(CHANNEL_RAID).send(msg)
+    if CHANNELS["RAID"]:
+        await bot.get_channel(CHANNELS["RAID"]).send(msg)
     else:
         logger.warning("No Raid Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 @coc.ClientEvents.raid_weekend_end()
 async def raid_weekend_ended():
@@ -386,37 +393,44 @@ async def raid_weekend_ended():
         utils.get_raid_weekend_start()
     )
     logger.info(msg)
-    if CHANNEL_RAID:
-        await bot.get_channel(CHANNEL_RAID).send(msg)
+    if CHANNELS["RAID"]:
+        await bot.get_channel(CHANNELS["RAID"]).send(msg)
     else:
         logger.warning("No Raid Channel set!")
-        await bot.get_channel(CHANNEL_DEFAULT).send(msg)
+        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
 
 
-async def find_channels() -> None:
+def find_channels() -> None:
     channels = bot.get_all_channels()
+    global CHANNELS
     for channel in channels:
         if "general" in channel.name.lower():
-            global CHANNEL_DEFAULT
-            CHANNEL_DEFAULT = channel.id
+            CHANNELS["DEFAULT"] = channel.id
+            logger.info("General Channel changed to: %d", CHANNELS["DEFAULT"])
+
         if "donations" in channel.name.lower():
-            global CHANNEL_DONATIONS
-            CHANNEL_DONATIONS = channel.id
+            CHANNELS["DONATIONS"] = channel.id
+            logger.info("Donation Channel changed to: %d", CHANNELS["DONATIONS"])
+
         if "game" in channel.name.lower():
-            global CHANNEL_GAME
-            CHANNEL_GAME = channel.id
+            CHANNELS["GAME"] = channel.id
+            logger.info("Clan Games Channel changed to: %d", CHANNELS["GAME"])
+
         if "raid" in channel.name.lower():
-            global CHANNEL_RAID
-            CHANNEL_RAID = channel.id
+            CHANNELS["RAID"] = channel.id
+            logger.info("Raid Channel changed to: %d", CHANNELS["RAID"])
+
         if "rank" in channel.name.lower():
-            global CHANNEL_RANK
-            CHANNEL_RANK = channel.id
+            CHANNELS["RANK"] = channel.id
+            logger.info("Rank Channel changed to: %d", CHANNELS["RANK"])
+
         if "war" in channel.name.lower():
-            global CHANNEL_WARS
-            CHANNEL_WARS = channel.id
+            CHANNELS["WARS"] = channel.id
+            logger.info("War Channel changed to: %d", CHANNELS["WARS"])
+
         if "welcome" in channel.name.lower():
-            global CHANNEL_WELCOME
-            CHANNEL_WELCOME = channel.id
+            CHANNELS["WELCOME"] = channel.id
+            logger.info("Welcome Channel changed to: %d", CHANNELS["WELCOME"])
 
 async def main(clan_tags: List[str]) -> None:
     """ Launches the clan event handler as a separate async task.
@@ -468,14 +482,20 @@ if __name__ == "__main__":
     # events forever you must set the event loop to run forever so we will use
     # the lower level function calls to handle this.
     loop = asyncio.get_event_loop()
-    find_channels()
-    bot.run(DISCORD_TOKEN)
 
     try:
         # Using the loop context, run the main function then set the loop
         # to run forever so that it continuously monitors for events
         CT = [CLAN_TAG]
+        # bot.run(DISCORD_TOKEN)
         loop.run_until_complete(main(clan_tags=CT))
+        # bot.start(DISCORD_TOKEN)
+        # import time
+        # time.sleep(10)
+        # find_channels()
+        # for channel, tag in CHANNELS.items():
+        #     logger.info("Channel %s: %d", channel, tag)
+        # cobot = bot.connect()
         loop.run_forever()
     except KeyboardInterrupt:
         pass
