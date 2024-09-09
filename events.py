@@ -81,15 +81,14 @@ bot = discord.ext.commands.Bot(command_prefix="/", intents=discord.Intents.all()
 async def on_ready():
     """_summary_
     """
+    await find_channels()
     msg = "Clash Stats has been started!"
     logger.info(msg)
     try:
-        channels = bot.get_all_channels()
-        for channel in channels:
-            if "general" in channel.name.lower():
-                CHANNELS["DEFAULT"] = channel.id
-                logger.info("General Channel changed to: %d", CHANNELS["DEFAULT"])
-                await channel.send(msg)
+        if CHANNELS["DEFAULT"]:
+            await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
+        else:
+            logger.error("No Default Channel set!")
     except AttributeError:
         logger.error("No channel found with ID: %d", CHANNELS["DEFAULT"])
 
@@ -438,37 +437,38 @@ async def raid_weekend_ended():
         logger.error("No Default Channel set!")
 
 
-def find_channels() -> None:
+async def find_channels() -> None:
     channels = bot.get_all_channels()
     global CHANNELS
     for channel in channels:
-        if "general" in channel.name.lower():
-            CHANNELS["DEFAULT"] = channel.id
-            logger.info("General Channel changed to: %d", CHANNELS["DEFAULT"])
+        if isinstance(channel, discord.TextChannel):
+            if "general" in channel.name.lower():
+                CHANNELS["DEFAULT"] = channel.id
+                logger.info("General Channel changed to: %d (#%s)", CHANNELS["DEFAULT"], channel.name)
 
-        if "donations" in channel.name.lower():
-            CHANNELS["DONATIONS"] = channel.id
-            logger.info("Donation Channel changed to: %d", CHANNELS["DONATIONS"])
+            if "donations" in channel.name.lower():
+                CHANNELS["DONATIONS"] = channel.id
+                logger.info("Donation Channel changed to: %d (#%s)", CHANNELS["DONATIONS"], channel.name)
 
-        if "game" in channel.name.lower():
-            CHANNELS["GAME"] = channel.id
-            logger.info("Clan Games Channel changed to: %d", CHANNELS["GAME"])
+            if "game" in channel.name.lower():
+                CHANNELS["GAME"] = channel.id
+                logger.info("Clan Games Channel changed to: %d (#%s)", CHANNELS["GAME"], channel.name)
 
-        if "raid" in channel.name.lower():
-            CHANNELS["RAID"] = channel.id
-            logger.info("Raid Channel changed to: %d", CHANNELS["RAID"])
+            if "raid" in channel.name.lower():
+                CHANNELS["RAID"] = channel.id
+                logger.info("Raid Channel changed to: %d (#%s)", CHANNELS["RAID"], channel.name)
 
-        if "rank" in channel.name.lower():
-            CHANNELS["RANK"] = channel.id
-            logger.info("Rank Channel changed to: %d", CHANNELS["RANK"])
+            if "rank" in channel.name.lower():
+                CHANNELS["RANK"] = channel.id
+                logger.info("Rank Channel changed to: %d (#%s)", CHANNELS["RANK"], channel.name)
 
-        if "war" in channel.name.lower():
-            CHANNELS["WARS"] = channel.id
-            logger.info("War Channel changed to: %d", CHANNELS["WARS"])
+            if "war" in channel.name.lower():
+                CHANNELS["WARS"] = channel.id
+                logger.info("War Channel changed to: %d (#%s)", CHANNELS["WARS"], channel.name)
 
-        if "welcome" in channel.name.lower():
-            CHANNELS["WELCOME"] = channel.id
-            logger.info("Welcome Channel changed to: %d", CHANNELS["WELCOME"])
+            if "welcome" in channel.name.lower():
+                CHANNELS["WELCOME"] = channel.id
+                logger.info("Welcome Channel changed to: %d (#%s)", CHANNELS["WELCOME"], channel.name)
 
 async def main(clan_tags: List[str]) -> None:
     """ Launches the clan event handler as a separate async task.
@@ -476,64 +476,59 @@ async def main(clan_tags: List[str]) -> None:
     Args:
         clan_tags (List[str]): List of clan tags that are being monitored
     """
-    coc_client = coc.EventsClient()
+    async with coc.EventsClient() as coc_client:
+        # Attempt to log into CoC API using your credentials. You must use the
+        # coc.EventsClient to enable event listening
+        try:
+            await coc_client.login(
+                DEV_EMAIL,
+                DEV_PASSWORD
+            )
+        except coc.InvalidCredentials as error:
+            sys.exit(error)
 
-    # Attempt to log into CoC API using your credentials. You must use the
-    # coc.EventsClient to enable event listening
-    try:
-        await coc_client.login(DEV_EMAIL,
-                               DEV_PASSWORD)
-    except coc.InvalidCredentials as error:
-        sys.exit(error)
+        # Register all the clans you want to track
+        coc_client.add_clan_updates(*clan_tags)
 
-    # Register all the clans you want to track
-    coc_client.add_clan_updates(*clan_tags)
+        # Register all the players you want to track
+        async for clan in coc_client.get_clans(clan_tags):
+            coc_client.add_player_updates(*[member.tag for member in clan.members])
 
-    # Register all the players you want to track
-    async for clan in coc_client.get_clans(clan_tags):
-        coc_client.add_player_updates(*[member.tag for member in clan.members])
-
-    # Register all the callback functions that are triggered when a
-    # event if fired.
-    coc_client.add_events(
-        on_clan_member_donation,
-        on_clan_member_donation_receive,
-        on_clan_member_join,
-        on_clan_member_leave,
-        on_clan_trophy_change,
-        clan_member_trophies_changed,
-        clan_member_builder_base_trophies_changed,
-        current_war_stats,
-        new_war,
-        on_maintenance,
-        on_maintenance_completion,
-        season_started,
-        clan_games_started,
-        clan_games_ended,
-        raid_weekend_started,
-        raid_weekend_ended
-    )
+        # Register all the callback functions that are triggered when a
+        # event if fired.
+        coc_client.add_events(
+            on_clan_member_donation,
+            on_clan_member_donation_receive,
+            on_clan_member_join,
+            on_clan_member_leave,
+            on_clan_trophy_change,
+            clan_member_trophies_changed,
+            clan_member_builder_base_trophies_changed,
+            current_war_stats,
+            new_war,
+            on_maintenance,
+            on_maintenance_completion,
+            season_started,
+            clan_games_started,
+            clan_games_ended,
+            raid_weekend_started,
+            raid_weekend_ended
+        )
+        bot.coc_client = coc_client
+        await bot.start(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":
     # Unlike the other examples that use `asyncio.run()`, in order to run
     # events forever you must set the event loop to run forever so we will use
     # the lower level function calls to handle this.
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     try:
         # Using the loop context, run the main function then set the loop
         # to run forever so that it continuously monitors for events
         CT = [CLAN_TAG]
-        # bot.run(DISCORD_TOKEN)
         loop.run_until_complete(main(clan_tags=CT))
-        # bot.start(DISCORD_TOKEN)
-        # import time
-        # time.sleep(10)
-        # find_channels()
-        # for channel, tag in CHANNELS.items():
-        #     logger.info("Channel %s: %d", channel, tag)
-        # cobot = bot.connect()
-        loop.run_forever()
     except KeyboardInterrupt:
         pass
