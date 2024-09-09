@@ -5,25 +5,38 @@
 import asyncio
 import logging
 import os
+import sys
 import traceback
 
 import coc
 import discord
-from coc import utils
 import discord.ext
 import discord.ext.commands
 import discord.ext.tasks
+from coc import utils
+from dotenv import load_dotenv
+
+import log_format
 
 INFO_CHANNEL_ID = 761848043242127370  # some discord channel ID
 clan_tags = ["#20090C9PR", "#202GG92Q", "#20C8G0RPL"]
 
-############ GET ENVIRONMENT VARIABLES ############
-from dotenv import load_dotenv
+### PATH SECTION ###
+RTDIR = os.path.dirname(__file__)
+ENVDIR = f"{RTDIR}/../.env"
 
+### LOGGING SECTION ###
+logname = os.path.join(RTDIR, 'clan_events.log')
+log_format.format_logs(logger_name="Clash", file_name=logname, level=logging.DEBUG)
+logger = logging.getLogger("Clash")
+
+############ GET ENVIRONMENT VARIABLES ############
 RTDIR = os.path.dirname(__file__)
 
 load_dotenv(dotenv_path=f"{RTDIR}/.env")
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+DEV_EMAIL = os.getenv("DEV_EMAIL")
+DEV_PASSWORD = os.getenv("DEV_PASSWORD")
 ###################################################
 
 bot = discord.ext.commands.Bot(command_prefix="?", intents=discord.Intents.all())
@@ -240,24 +253,23 @@ async def current_war_status(ctx, clan_tag):
 
 
 async def main():
-    logging.basicConfig(level=logging.ERROR)
-
     async with coc.Client() as coc_client:
         # Attempt to log into CoC API using your credentials.
         try:
-            await coc_client.login(os.environ.get("DEV_SITE_EMAIL"),
-                                   os.environ.get("DEV_SITE_PASSWORD"))
+            await coc_client.login(
+                DEV_EMAIL,
+                DEV_PASSWORD
+            )
         except coc.InvalidCredentials as error:
-            exit(error)
+            sys.exit(error)
 
         # Add the client session to the bot
         bot.coc_client = coc_client
-        await bot.start(os.environ.get("DISCORD_BOT_TOKEN"))
+        await bot.start(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":
     try:
-        bot.run(DISCORD_TOKEN)
         asyncio.run(main())
     except KeyboardInterrupt:
         pass
