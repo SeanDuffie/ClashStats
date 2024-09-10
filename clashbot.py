@@ -7,7 +7,6 @@ import asyncio
 import logging
 import os
 import sys
-import threading
 from typing import List
 
 import coc
@@ -19,10 +18,23 @@ from coc import utils
 from dotenv import load_dotenv, set_key
 
 import log_format
+from database import Database
 
 ### PATH SECTION ###
 RTDIR = os.path.dirname(__file__)
-ENVDIR = f"{RTDIR}/../.env"
+ENVDIR = f"{RTDIR}/.env"
+
+### DATABASE SECTION ###
+columns = [
+    ("Date", "text", ""),
+    ("DiscordSVR", "int", ""),
+    ("Clan", "int", ""),
+    ("Player", "real", ""),
+    ("Trophies", "real", "")
+]
+DB = Database("stats.db", RTDIR)
+DB.create_table(t_name="trophies", cols=columns)
+DB.close()
 
 ### LOGGING SECTION ###
 logname = os.path.join(RTDIR, 'clan_events.log')
