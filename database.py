@@ -4,6 +4,7 @@
 """
 import datetime
 import logging
+import os
 import sqlite3
 import sys
 
@@ -64,9 +65,10 @@ class Database():
         """
         try:
             # Create a connection to the SQL database file
-            self.con = sqlite3.connect(f"{db_path}{db_file}")
+            self.con = sqlite3.connect(os.path.join(db_path, db_file))
             # Create a cursor
             self.cursor = self.con.cursor()
+            logger.info("Database Connection Created!")
         except sqlite3.Error as e:
             print(e)
             logger.error("Failed to create connection!")
