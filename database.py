@@ -16,7 +16,7 @@ import pandas as pd
 # COL: TypeAlias = Dict[]
 
 # Initial Logger Settings
-logger = logging.getLogger("app")
+logger = logging.getLogger("Clash")
 
 
 class Database():
