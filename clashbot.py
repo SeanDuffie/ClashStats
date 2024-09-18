@@ -4,6 +4,7 @@
     @brief Clan Event Handler
 """
 import asyncio
+import datetime
 import logging
 import os
 import sys
@@ -14,6 +15,7 @@ import discord
 import discord.ext
 import discord.ext.commands
 import discord.ext.tasks
+import pandas as pd
 from coc import utils
 from dotenv import load_dotenv, set_key
 
@@ -22,22 +24,42 @@ from database import Database
 
 ### PATH SECTION ###
 RTDIR = os.path.dirname(__file__)
-ENVDIR = f"{RTDIR}/.env"
+DBDIR = os.path.join(RTDIR, "data")
+LOGDIR = os.path.join(RTDIR, "logs")
+ENVDIR = os.path.join(RTDIR, ".env")
 
 ### DATABASE SECTION ###
-columns = [
-    ("Date", "text", ""),
-    ("DiscordSVR", "int", ""),
-    ("Clan", "int", ""),
-    ("Player", "real", ""),
-    ("Trophies", "real", "")
-]
-DB = Database("stats.db", RTDIR)
-DB.create_table(t_name="trophies", cols=columns)
+DB = Database("stats.db", DBDIR)
+DB.create_table(
+    t_name="roster",
+    cols=[
+        ("COC", "text", ""),
+        ("Discord", "text", "")
+    ]
+)
+DB.create_table(
+    t_name="trophies",
+    cols=[
+        ("Date", "text", ""),
+        ("Clan", "text", ""),
+        ("Player", "text", ""),
+        ("Trophies", "int", "")
+    ]
+)
+DB.create_table(
+    t_name="donations",
+    cols=[
+        ("Date", "text", ""),
+        ("Clan", "text", ""),
+        ("Donor", "text", ""),
+        ("Recipient", "text", ""),
+        ("Amount", "int", "")
+    ]
+)
 DB.close()
 
 ### LOGGING SECTION ###
-logname = os.path.join(RTDIR, 'clan_events.log')
+logname = os.path.join(LOGDIR, f'clashbot_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.log')
 log_format.format_logs(logger_name="Clash", file_name=logname, level=logging.DEBUG)
 logger = logging.getLogger("Clash")
 
@@ -115,7 +137,18 @@ async def on_clan_member_donation(old_member: coc.ClanMember, new_member: coc.Cl
         old_member (coc.ClanMember): _description_
         new_member (coc.ClanMember): _description_
     """
+    DB.create_connection("stats.db", DBDIR)
     final_donated_troops = new_member.donations - old_member.donations
+    new_donations = pd.DataFrame([[
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            new_member.clan.tag,
+            new_member.tag,
+            "Donated",
+            final_donated_troops
+    ]])
+    DB.insert_row("donations", new_donations.itertuples(index=False, name=None)[0])
+    DB.close()
+
     msg = "{} of {} just donated {} troops.".format(
             new_member,
             new_member.clan,
@@ -130,7 +163,6 @@ async def on_clan_member_donation(old_member: coc.ClanMember, new_member: coc.Cl
     else:
         logger.warning("No Donation Channel set!")
         logger.error("No Default Channel set!")
-    print(type(old_member), type(new_member))
 
 
 @coc.ClanEvents.member_received()
@@ -143,7 +175,18 @@ async def on_clan_member_donation_receive(old_member: coc.ClanMember, new_member
         old_member (coc.ClanMember): _description_
         new_member (coc.ClanMember): _description_
     """
+    DB.create_connection("stats.db", DBDIR)
     final_received_troops = new_member.received - old_member.received
+    new_donations = pd.DataFrame([[
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            new_member.clan.tag,
+            "Received",
+            new_member.tag,
+            final_received_troops
+    ]])
+    DB.insert_row("donations", new_donations.itertuples(index=False, name=None)[0])
+    DB.close()
+
     msg = "{} of {} just received {} troops.".format(
         new_member,
         new_member.clan,
@@ -158,7 +201,6 @@ async def on_clan_member_donation_receive(old_member: coc.ClanMember, new_member
     else:
         logger.warning("No Donation Channel set!")
         logger.error("No Default Channel set!")
-    print(type(old_member), type(new_member))
 
 
 @coc.ClanEvents.member_join()
@@ -184,7 +226,6 @@ async def on_clan_member_join(member: coc.ClanMember, clan: coc.Clan):
     else:
         logger.warning("No Welcome Channel set!")
         logger.error("No Default Channel set!")
-    print(type(member), type(clan))
     ranks = {
         -1: "left",
         0: "gone",
@@ -254,6 +295,16 @@ async def clan_member_trophies_changed(old_member: coc.ClanMember, new_member: c
         old_member (coc.ClanMember): _description_
         new_member (coc.ClanMember): _description_
     """
+    DB.create_connection("stats.db", DBDIR)
+    new_trophies = pd.DataFrame([[
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        new_member.clan.tag,
+        new_member.tag,
+        new_member.trophies
+    ]])
+    DB.insert_row("donations", new_trophies.itertuples(index=False, name=None)[0])
+    DB.close()
+
     msg = "{} trophies changed from {} to {}".format(
         new_member,
         old_member.trophies,
@@ -355,7 +406,7 @@ async def on_maintenance():
 
 
 @coc.ClientEvents.maintenance_completion()
-async def on_maintenance_completion(time_started):
+async def on_maintenance_completion(time_started: datetime.datetime):
     """_summary_
 
     Args:
