@@ -146,7 +146,9 @@ async def on_clan_member_donation(old_member: coc.ClanMember, new_member: coc.Cl
             "Donated",
             final_donated_troops
     ]])
-    DB.insert_row("donations", new_donations.itertuples(index=False, name=None)[0])
+    for row in new_donations.itertuples(index=False, name=None):
+        DB.insert_row("donations", row=row)
+        break
     DB.close()
 
     msg = "{} of {} just donated {} troops.".format(
@@ -184,7 +186,9 @@ async def on_clan_member_donation_receive(old_member: coc.ClanMember, new_member
             new_member.tag,
             final_received_troops
     ]])
-    DB.insert_row("donations", new_donations.itertuples(index=False, name=None)[0])
+    for row in new_donations.itertuples(index=False, name=None):
+        DB.insert_row("donations", row=row)
+        break
     DB.close()
 
     msg = "{} of {} just received {} troops.".format(
@@ -302,7 +306,9 @@ async def clan_member_trophies_changed(old_member: coc.ClanMember, new_member: c
         new_member.tag,
         new_member.trophies
     ]])
-    DB.insert_row("donations", new_trophies.itertuples(index=False, name=None)[0])
+    for row in new_trophies.itertuples(index=False, name=None):
+        DB.insert_row("trophies", row=row)
+        break
     DB.close()
 
     msg = "{} trophies changed from {} to {}".format(
