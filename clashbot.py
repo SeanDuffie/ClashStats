@@ -42,7 +42,8 @@ DB.create_table(
     cols=[
         ("Date", "text", ""),
         ("Clan", "text", ""),
-        ("Player", "text", ""),
+        ("PlayerTag", "text", ""),
+        ("PlayerName", "text", ""),
         ("Trophies", "int", "")
     ]
 )
@@ -51,8 +52,10 @@ DB.create_table(
     cols=[
         ("Date", "text", ""),
         ("Clan", "text", ""),
-        ("Donor", "text", ""),
-        ("Recipient", "text", ""),
+        ("DonorTag", "text", ""),
+        ("DonorName", "text", ""),
+        ("RecipientTag", "text", ""),
+        ("RecipientName", "text", ""),
         ("Amount", "int", "")
     ]
 )
@@ -143,7 +146,9 @@ async def on_clan_member_donation(old_member: coc.ClanMember, new_member: coc.Cl
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             new_member.clan.tag,
             new_member.tag,
-            "Donated",
+            new_member.name,
+            "DonatedTag",
+            "DonatedName",
             final_donated_troops
     ]])
     for row in new_donations.itertuples(index=False, name=None):
@@ -157,14 +162,14 @@ async def on_clan_member_donation(old_member: coc.ClanMember, new_member: coc.Cl
             final_donated_troops
     )
     logger.info(msg)
-    if CHANNELS["DONATIONS"]:
-        await bot.get_channel(CHANNELS["DONATIONS"]).send(msg)
-    elif CHANNELS["DEFAULT"]:
-        logger.warning("No Donation Channel set!")
-        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
-    else:
-        logger.warning("No Donation Channel set!")
-        logger.error("No Default Channel set!")
+    # if CHANNELS["DONATIONS"]:
+    #     await bot.get_channel(CHANNELS["DONATIONS"]).send(msg)
+    # elif CHANNELS["DEFAULT"]:
+    #     logger.warning("No Donation Channel set!")
+    #     await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
+    # else:
+    #     logger.warning("No Donation Channel set!")
+    #     logger.error("No Default Channel set!")
 
 
 @coc.ClanEvents.member_received()
@@ -182,8 +187,10 @@ async def on_clan_member_donation_receive(old_member: coc.ClanMember, new_member
     new_donations = pd.DataFrame([[
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             new_member.clan.tag,
-            "Received",
+            "ReceivedTag",
+            "ReceivedName",
             new_member.tag,
+            new_member.name,
             final_received_troops
     ]])
     for row in new_donations.itertuples(index=False, name=None):
@@ -197,14 +204,14 @@ async def on_clan_member_donation_receive(old_member: coc.ClanMember, new_member
         final_received_troops
     )
     logger.info(msg)
-    if CHANNELS["DONATIONS"]:
-        await bot.get_channel(CHANNELS["DONATIONS"]).send(msg)
-    elif CHANNELS["DEFAULT"]:
-        logger.warning("No Donation Channel set!")
-        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
-    else:
-        logger.warning("No Donation Channel set!")
-        logger.error("No Default Channel set!")
+    # if CHANNELS["DONATIONS"]:
+    #     await bot.get_channel(CHANNELS["DONATIONS"]).send(msg)
+    # elif CHANNELS["DEFAULT"]:
+    #     logger.warning("No Donation Channel set!")
+    #     await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
+    # else:
+    #     logger.warning("No Donation Channel set!")
+    #     logger.error("No Default Channel set!")
 
 
 @coc.ClanEvents.member_join()
@@ -230,15 +237,6 @@ async def on_clan_member_join(member: coc.ClanMember, clan: coc.Clan):
     else:
         logger.warning("No Welcome Channel set!")
         logger.error("No Default Channel set!")
-    ranks = {
-        -1: "left",
-        0: "gone",
-        1: "joined",
-        2: "member",
-        3: "elder",
-        4: "coleader",
-        5: "leader"
-    }
 
 
 @coc.ClanEvents.member_leave()
@@ -282,14 +280,14 @@ async def on_clan_trophy_change(old_clan: coc.Clan, new_clan: coc.Clan):
         new_clan.points
     )
     logger.info(msg)
-    if CHANNELS["RANK"]:
-        await bot.get_channel(CHANNELS["RANK"]).send(msg)
-    elif CHANNELS["DEFAULT"]:
-        logger.warning("No Rank Channel set!")
-        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
-    else:
-        logger.warning("No Rank Channel set!")
-        logger.error("No Default Channel set!")
+    # if CHANNELS["RANK"]:
+    #     await bot.get_channel(CHANNELS["RANK"]).send(msg)
+    # elif CHANNELS["DEFAULT"]:
+    #     logger.warning("No Rank Channel set!")
+    #     await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
+    # else:
+    #     logger.warning("No Rank Channel set!")
+    #     logger.error("No Default Channel set!")
 
 @coc.ClanEvents.member_trophies()
 async def clan_member_trophies_changed(old_member: coc.ClanMember, new_member: coc.ClanMember):
@@ -317,14 +315,14 @@ async def clan_member_trophies_changed(old_member: coc.ClanMember, new_member: c
         new_member.trophies
     )
     logger.info(msg)
-    if CHANNELS["RANK"]:
-        await bot.get_channel(CHANNELS["RANK"]).send(msg)
-    elif CHANNELS["DEFAULT"]:
-        logger.warning("No Rank Channel set!")
-        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
-    else:
-        logger.warning("No Rank Channel set!")
-        logger.error("No Default Channel set!")
+    # if CHANNELS["RANK"]:
+    #     await bot.get_channel(CHANNELS["RANK"]).send(msg)
+    # elif CHANNELS["DEFAULT"]:
+    #     logger.warning("No Rank Channel set!")
+    #     await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
+    # else:
+    #     logger.warning("No Rank Channel set!")
+    #     logger.error("No Default Channel set!")
 
 @coc.ClanEvents.member_builder_base_trophies()
 async def clan_member_builder_base_trophies_changed(old_member: coc.ClanMember, new_member: coc.ClanMember):
@@ -340,14 +338,14 @@ async def clan_member_builder_base_trophies_changed(old_member: coc.ClanMember, 
         new_member.builder_base_trophies
     )
     logger.info(msg)
-    if CHANNELS["RANK"]:
-        await bot.get_channel(CHANNELS["RANK"]).send(msg)
-    elif CHANNELS["DEFAULT"]:
-        logger.warning("No Rank Channel set!")
-        await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
-    else:
-        logger.warning("No Rank Channel set!")
-        logger.error("No Default Channel set!")
+    # if CHANNELS["RANK"]:
+    #     await bot.get_channel(CHANNELS["RANK"]).send(msg)
+    # elif CHANNELS["DEFAULT"]:
+    #     logger.warning("No Rank Channel set!")
+    #     await bot.get_channel(CHANNELS["DEFAULT"]).send(msg)
+    # else:
+    #     logger.warning("No Rank Channel set!")
+    #     logger.error("No Default Channel set!")
 
 
 ### War Events ###
